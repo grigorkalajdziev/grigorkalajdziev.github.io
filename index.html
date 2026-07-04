@@ -86,6 +86,8 @@
       letter-spacing: -0.02em;
       color: var(--text);
       text-decoration: none;
+      position: relative;
+      z-index: 111;
     }
     .nav-logo span { color: var(--accent); }
     .nav-links { display: flex; gap: 32px; list-style: none; }
@@ -98,6 +100,42 @@
       transition: color 0.2s;
     }
     .nav-links a:hover { color: var(--accent); }
+
+    /* Hamburger toggle (hidden unless small screens) */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 5px;
+      width: 32px; height: 32px;
+      background: transparent;
+      border: none;
+      cursor: none;
+      padding: 0;
+      position: relative;
+      z-index: 111;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: var(--text);
+      transition: transform 0.25s ease, opacity 0.25s ease, width 0.25s ease;
+    }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); width: 100%; }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); width: 100%; }
+
+    .nav-scrim {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 103;
+    }
+    .nav-scrim.open { opacity: 1; pointer-events: auto; }
 
     /* HERO */
     .hero {
@@ -135,6 +173,7 @@
       letter-spacing: -0.03em;
       margin-bottom: 24px;
       opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
+      word-break: break-word;
     }
     h1 .accent { color: var(--accent); }
     h1 .accent2 { color: var(--accent2); }
@@ -181,7 +220,8 @@
       background: var(--surface);
       border: 1px solid var(--border);
       padding: 32px;
-      width: 340px;
+      width: 100%;
+      max-width: 340px;
       position: relative;
     }
     .hero-card::before {
@@ -335,7 +375,7 @@
     }
     .contact-link:hover { color: var(--accent); }
     .contact-link-icon { font-size: 1rem; width: 20px; text-align: center; }
-    .contact-link-label { flex: 1; }
+    .contact-link-label { flex: 1; word-break: break-word; }
     .contact-link-arrow { transition: transform 0.2s; }
     .contact-link:hover .contact-link-arrow { transform: translate(4px, -4px); }
     .contact-right {
@@ -397,15 +437,88 @@
     }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
+    /* Keyboard accessibility */
+    a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* ============ RESPONSIVE ============ */
+
+    /* Tablets / small laptops */
+    @media (max-width: 1024px) {
+      .hero { gap: 40px; }
+      .exp-desc { max-width: 100%; }
+    }
+
+    /* Tablet portrait & large phones */
     @media (max-width: 900px) {
       nav { padding: 20px 24px; }
       .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 48px; }
       .hero-right { justify-content: flex-start; }
       .section { padding: 80px 24px; }
       .exp-item { grid-template-columns: 1fr; gap: 8px; }
+      .exp-arrow { display: none; }
       .projects-grid { grid-template-columns: 1fr; }
+      .project-card { padding: 32px; }
       .contact-inner { grid-template-columns: 1fr; gap: 48px; }
       footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+
+    /* Phones & small tablets: collapse nav into off-canvas menu */
+    @media (max-width: 640px) {
+      .nav-toggle { display: flex; }
+      .nav-links {
+        position: fixed;
+        top: 0; right: 0;
+        height: 100vh;
+        width: min(78vw, 300px);
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 28px;
+        padding: 0 40px;
+        transform: translateX(100%);
+        transition: transform 0.35s ease;
+        z-index: 104;
+      }
+      .nav-links.open { transform: translateX(0); }
+      .nav-links a { font-size: 0.85rem; }
+    }
+
+    /* Small phones: tighten type & spacing */
+    @media (max-width: 480px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 88px 20px 48px; }
+      h1 { font-size: clamp(2.4rem, 11vw, 3.2rem); }
+      .hero-desc { max-width: 100%; }
+      .hero-card { padding: 24px; }
+      .section { padding: 60px 20px; }
+      .section-header { margin-bottom: 40px; gap: 16px; flex-wrap: wrap; }
+      .skills-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+      .skill-item { padding: 20px 16px; }
+      .project-card { padding: 24px; }
+      .project-card::after { top: 24px; right: 24px; }
+      .contact-right { padding: 28px 24px; }
+      .btn { padding: 14px 24px; }
+    }
+
+    /* Touch / no real cursor: kill the custom cursor entirely */
+    @media (hover: none), (pointer: coarse) {
+      .cursor, .cursor-ring { display: none; }
+      body, .btn, .nav-toggle { cursor: auto; }
+    }
+
+    /* Respect reduced-motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -417,14 +530,18 @@
   <!-- NAV -->
   <nav id="nav">
     <a href="#" class="nav-logo">GK<span>.</span></a>
-    <ul class="nav-links">
+    <ul class="nav-links" id="navLinks">
       <li><a href="#skills">Skills</a></li>
       <li><a href="#experience">Experience</a></li>
       <li><a href="#projects">Projects</a></li>
       <li><a href="#certifications">Certs</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
+  <div class="nav-scrim" id="navScrim"></div>
 
   <!-- HERO -->
   <section class="hero">
@@ -781,35 +898,61 @@
   </footer>
 
   <script>
-    // Custom cursor
+    // Custom cursor (desktop / fine-pointer devices only)
     const cursor = document.getElementById('cursor');
     const ring = document.getElementById('cursorRing');
-    let mx = 0, my = 0, rx = 0, ry = 0;
-    document.addEventListener('mousemove', e => {
-      mx = e.clientX; my = e.clientY;
-      cursor.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
-    });
-    function animateRing() {
-      rx += (mx - rx - 20) * 0.12;
-      ry += (my - ry - 20) * 0.12;
-      ring.style.transform = `translate(${rx}px, ${ry}px)`;
-      requestAnimationFrame(animateRing);
+    const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    if (hasFinePointer) {
+      let mx = 0, my = 0, rx = 0, ry = 0;
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        cursor.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
+      });
+      function animateRing() {
+        rx += (mx - rx - 20) * 0.12;
+        ry += (my - ry - 20) * 0.12;
+        ring.style.transform = `translate(${rx}px, ${ry}px)`;
+        requestAnimationFrame(animateRing);
+      }
+      animateRing();
+      document.querySelectorAll('a, button, .skill-item').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          ring.style.width = '60px'; ring.style.height = '60px';
+        });
+        el.addEventListener('mouseleave', () => {
+          ring.style.width = '40px'; ring.style.height = '40px';
+        });
+      });
+    } else {
+      cursor.style.display = 'none';
+      ring.style.display = 'none';
     }
-    animateRing();
-    document.querySelectorAll('a, button, .skill-item').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        cursor.style.transform += ' scale(2)';
-        ring.style.width = '60px'; ring.style.height = '60px';
-      });
-      el.addEventListener('mouseleave', () => {
-        ring.style.width = '40px'; ring.style.height = '40px';
-      });
-    });
 
     // Nav scroll
     const nav = document.getElementById('nav');
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    const navScrim = document.getElementById('navScrim');
+
+    function setNavOpen(open) {
+      navLinks.classList.toggle('open', open);
+      navToggle.classList.toggle('open', open);
+      navScrim.classList.toggle('open', open);
+      navToggle.setAttribute('aria-expanded', String(open));
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+    navToggle.addEventListener('click', () => {
+      setNavOpen(!navLinks.classList.contains('open'));
+    });
+    navScrim.addEventListener('click', () => setNavOpen(false));
+    navLinks.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => setNavOpen(false));
     });
 
     // Scroll reveal
